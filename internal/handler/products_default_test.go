@@ -214,6 +214,37 @@ func TestProduct_GetProducts(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Get by id sem sucesso - id invalido",
+			arrange: arrange{
+				repoMock: func() *repository.ProductsMock {
+					rpMock := repository.NewProductsMock()
+					rpMock.FuncSearchProducts = func(query internal.ProductQuery) (map[int]internal.Product, error) {
+						return map[int]internal.Product{}, nil
+					}
+					return rpMock
+				},
+			},
+			request: request{
+				request: func() *http.Request {
+					r := httptest.NewRequest("GET", "/", nil)
+					q := r.URL.Query()
+					q.Add("id", "aaa")
+					r.URL.RawQuery = q.Encode()
+					return r
+				},
+				response: httptest.NewRecorder(),
+			},
+			response: response{
+				code: http.StatusBadRequest,
+				body: `
+			{"status":"Bad Request","message":"invalid id"}
+		`,
+				headers: http.Header{
+					"Content-Type": []string{"application/json"},
+				},
+			},
+		},
 	}
 
 	for _, testC := range testCases {
